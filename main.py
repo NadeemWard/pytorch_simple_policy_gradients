@@ -1,21 +1,21 @@
 import argparse
-from comet_ml import Experiment
+#from comet_ml import Experiment
 import torch
 from torch.autograd import Variable
 import torch.autograd as autograd
 import numpy as np
 import torch.nn as nn
 import json
-from reinforce_simple import REINFORCE
+from REINFORCE import REINFORCE
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Normal
-import mujoco_py
+#import mujoco_py
 import os
 import gym
 import ipdb
 
-def evaluate_policy(policy, eval_episodes = 10):
+def evaluate_policy(policy, env, eval_episodes = 10):
     '''
         function to return the average reward of the policy over 10 runs
     '''
@@ -63,20 +63,20 @@ def main(args):
           max_action:{2}, min_action: {3}".format(action_dim,state_dim,max_action,min_action))
 
     # setup comet_ml to track experiments
-    if os.path.isfile("settings.json"):
-        with open('settings.json') as f:
-                data = json.load(f)
-        args.comet_apikey = data["apikey"]
-        args.comet_username = data["username"]
-    else:
-        raise NotImplementedError
+#    if os.path.isfile("settings.json"):
+#        with open('settings.json') as f:
+#                data = json.load(f)
+#        args.comet_apikey = data["apikey"]
+#        args.comet_username = data["username"]
+#    else:
+#        raise NotImplementedError
 
-    experiment = Experiment(api_key=args.comet_apikey,\
-    project_name="florl",auto_output_logging="None",\
-    workspace=args.comet_username,auto_metric_logging=False,\
-    auto_param_logging=False)
-    experiment.set_name(args.namestr)
-    args.experiment = experiment
+#    experiment = Experiment(api_key=args.comet_apikey,\
+#    project_name="florl",auto_output_logging="None",\
+#    workspace=args.comet_username,auto_metric_logging=False,\
+#    auto_param_logging=False)
+#    experiment.set_name(args.namestr)
+#    args.experiment = experiment
 
     # construct model
     hidden_size = args.hidden_size
@@ -105,13 +105,15 @@ def main(args):
 
         if args.baseline:
             policy_loss, value_loss = policy.train(trajectory)
-            experiment.log_metric("value function loss", value_loss, step = total_episodes)
+            #experiment.log_metric("value function loss", value_loss, step = total_episodes)
         else:
             policy_loss = policy.train(trajectory)
 
-        experiment.log_metric("policy loss",policy_loss, step = total_episodes)
-        experiment.log_metric("episode reward", episode_reward, step =total_episodes)
+        #experiment.log_metric("policy loss",policy_loss, step = total_episodes)
+        #experiment.log_metric("episode reward", episode_reward, step =total_episodes)
 
+    if total_episodes % 10 == 0:
+        evaluate_policy(policy,env)
 
     env.close()
 
