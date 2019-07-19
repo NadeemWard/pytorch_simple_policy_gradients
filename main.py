@@ -1,5 +1,5 @@
 import argparse
-#from comet_ml import Experiment
+from comet_ml import Experiment
 import torch
 from torch.autograd import Variable
 import torch.autograd as autograd
@@ -62,22 +62,22 @@ def main(args):
     print("number of actions:{0}, dim of states: {1},\
           max_action:{2}, min_action: {3}".format(action_dim,state_dim,max_action,min_action))
 
-#    # setup comet_ml to track experiments
-#    if os.path.isfile("settings.json"):
-#        with open('settings.json') as f:
-#                data = json.load(f)
-#        args.comet_apikey = data["apikey"]
-#        args.comet_username = data["username"]
-#    else:
-#        raise NotImplementedError
-#
-#    experiment = Experiment(api_key=args.comet_apikey,\
-#    project_name="florl",auto_output_logging="None",\
-#    workspace=args.comet_username,auto_metric_logging=False,\
-#    auto_param_logging=False)
-#    experiment.set_name(args.namestr)
-#    args.experiment = experiment
-#
+   # setup comet_ml to track experiments
+
+    if os.path.isfile("settings.json"):
+        with open('settings.json') as f:
+                data = json.load(f)
+        args.comet_apikey = data["apikey"]
+        args.comet_username = data["username"]
+    else:
+        raise NotImplementedError
+    experiment = Experiment(api_key=args.comet_apikey,\
+    project_name="simple_policy_gradient",auto_output_logging="None",\
+    workspace=args.comet_username,auto_metric_logging=False,\
+    auto_param_logging=False)
+    experiment.set_name(args.namestr)
+    args.experiment = experiment
+
     # construct model
     hidden_size = args.hidden_size
     policy = REINFORCE(state_dim, hidden_size, action_dim, baseline = args.baseline)
@@ -112,10 +112,11 @@ def main(args):
         experiment.log_metric("policy loss",policy_loss, step = total_episodes)
         experiment.log_metric("episode reward", episode_reward, step =total_episodes)
 
-    if total_episodes % 10 == 0:
-        evaluate_policy(policy, env)
+        #print("at episode: {0}, episode reward: {1}".format(total_episodes,                                                    episode_reward))
+        if total_episodes % 10 == 0:
+            evaluate_policy(policy,env)
 
-    env.close()
+        env.close()
 
 
 if __name__ == '__main__':
