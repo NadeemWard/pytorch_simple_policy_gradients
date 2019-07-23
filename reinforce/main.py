@@ -80,7 +80,12 @@ def main(args):
 
     # construct model
     hidden_size = args.hidden_size
-    policy = REINFORCE(state_dim, hidden_size, action_dim, baseline = args.baseline)
+    if args.action_space == "continuous":
+        policy = REINFORCE(state_dim, hidden_size, action_dim, baseline = args.baseline)
+    elif args.action_space == "discrete":
+        policy = REINFORCE_discrete(state_dim, hidden_size, action_dim, baseline = args.baseline)
+    else:
+        raise NotImplementedError
 
     # start of experiment: Keep looping until desired amount of episodes reached
     max_episodes = args.num_episodes
@@ -112,7 +117,6 @@ def main(args):
         experiment.log_metric("policy loss",policy_loss, step = total_episodes)
         experiment.log_metric("episode reward", episode_reward, step =total_episodes)
 
-        #print("at episode: {0}, episode reward: {1}".format(total_episodes,                                                    episode_reward))
         if total_episodes % 10 == 0:
             evaluate_policy(policy,env)
 
@@ -125,10 +129,8 @@ if __name__ == '__main__':
     Process command-line arguments, then call main()
     """
     parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
-    parser.add_argument('--env-name', default="HalfCheetah-v1",
-                        help='name of the environment to run')
-    parser.add_argument('--seed', type=int, default=456, metavar='N',
-                        help='random seed (default: 456)')
+    parser.add_argument('--env-name', default="HalfCheetah-v1", help='name of the environment to run')
+    parser.add_argument('--seed', type=int, default=456, metavar='N', help='random seed (default: 456)')
     parser.add_argument('--baseline', type=bool, default = False, help = 'Whether you want to add a baseline to Reinforce or not')
     parser.add_argument('--namestr', type=str, default='FloRL', \
             help='additional info in output filename to describe experiments')
@@ -136,6 +138,8 @@ if __name__ == '__main__':
                         help='maximum number of episodes (default:2000)')
     parser.add_argument('--hidden-size', type=int, default=256, metavar='N',
                         help='hidden size (default: 256)')
+    parser.add_argument('--action-space', type=str, default = 'continuous', help = "Whether the action space is continuous or not to use the appropriate REINFORCE algo")
+
     args = parser.parse_args()
 
     main(args)

@@ -10,9 +10,10 @@ import torch.optim as optim
 from torch.distributions import Normal
 
 
-class REINFORCE:
+class Actor_Critic:
     '''
-    Implementation of the basic online reinforce algorithm for Gaussian policies.
+    Implementation of the basic online actor-critic algorithm for Gaussian
+    policies with baseline
     '''
 
     def __init__(self, num_inputs, hidden_size, action_space, lr_pi = 3e-4,\
@@ -20,16 +21,12 @@ class REINFORCE:
 
         self.gamma = gamma
         self.action_space = action_space
-        self.policy = Gaussian_Policy(num_inputs, hidden_size, action_space)
+        self.policy = Gaussian_Policy(num_inputs, hidden_size, action_space)# use a different policy depending on the action space being continuous or note.
         self.policy_optimizer = optim.Adam(self.policy.parameters(), lr = lr_pi)
         self.baseline = baseline
-        self.train_v_iters = train_v_iters # how many times you want to run update loop.
-
-        # create value network if we want to use baseline
-        if self.baseline:
-
-            self.value_function = ValueNetwork(num_inputs, hidden_size)
-            self.value_optimizer = optim.Adam(self.value_function.parameters(), lr = lr_vf)
+        self.train_v_iters = train_v_iters # how many times you want loop training of value network
+        self.critic = ValueNetwork(num_inputs, hidden_size)
+        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr = lr_vf)
 
     def select_action(self,state):
 
@@ -67,36 +64,41 @@ class REINFORCE:
         actions = [item[1] for item in trajectory]
 
 	#calculate rewards to go
-        R = 0
-        returns = []
-        for r in rewards[::-1]:
-            R = r + self.gamma * R
-            returns.insert(0, R)
+    #    R = 0
+   #     returns = []
+  #      for r in rewards[::-1]:
+ #           R = r + self.gamma * R
+#            returns.insert(0, R)
 
-        returns = torch.tensor(returns)
+     #   returns = torch.tensor(returns)
+        value_estimates = []
+        for state in states:
+            state = torch.from_numpy(state).float().unsqueeze(0) # just to make it a Tensor obj
+            value_estimates.append( self.critic(state) )
+
+        next_state_estimates = []
+        for indx in range(1, len(value_estimates) ):
+            next_state_estimates.append(np.asscalar(value_estimates[indx].detach().numpy()))
+
+        next_state_estimates.append(0)
+    # print(next_state_estimates)
+       # print(value_estimates)
+
+        value_estimates = torch.stack(value_estimates).squeeze()
+       # next_state_estimates = torch.stack(next_state_estimates).squeeze()
+
+        boostrap_estimate = []
+        for indx in range(len(rewards)):
+            G = rewards[indx] + self.gamma*next_state_estimates[indx]
+            boostrap_estimate.append(G)
+        boostrap_estimate = torch.Tensor(boostrap_estimate)
 
         # train the Value Network and calculate Advantage
         if self.baseline:
 
-            # loop over this a couple of times
-            for _ in range(self.train_v_iters):
-                # calculate loss of value function using mean squared error
-                value_estimates = []
-                for state in states:
-                    state = torch.from_numpy(state).float().unsqueeze(0) # just to make it a Tensor obj
-                    value_estimates.append( self.value_function(state) )
-
-                value_estimates = torch.stack(value_estimates).squeeze() # rewards to go for each step of env trajectory
-
-                v_loss = F.mse_loss(value_estimates, returns)
-                # update the weights
-                self.value_optimizer.zero_grad()
-                v_loss.backward()
-                self.value_optimizer.step()
-
             # calculate advantage
             advantage = []
-            for value, R in zip(value_estimates, returns):
+            for value, R in zip(value_estimates, boostrap_estimate):
                 advantage.append(R - value)
 
             advantage = torch.Tensor(advantage)
@@ -106,13 +108,21 @@ class REINFORCE:
             for log_prob, adv in zip(log_probs, advantage):
                 policy_loss.append( - log_prob * adv)
 
-
         else:
             policy_loss = []
-            for log_prob, R in zip(log_probs, returns):
+            for log_prob, R in zip(log_probs, boostrap_estimate):
                 policy_loss.append( - log_prob * R)
 
+        # update value network
+        for _ in range(self.train_v_iters):
 
+            v_loss = F.mse_loss(value_estimates, boostrap_estimate)
+            # update the weights
+            self.critic_optimizer.zero_grad()
+            v_loss.backward()
+            self.critic_optimizer.step()
+
+        # update policy network
         policy_loss = torch.stack( policy_loss ).sum()
         # update policy weights
         self.policy_optimizer.zero_grad()
@@ -120,8 +130,4 @@ class REINFORCE:
         self.policy_optimizer.step()
 
 
-        if self.baseline:
-            return policy_loss, v_loss
-
-        else:
-            return policy_loss
+        return policy_loss, v_loss
