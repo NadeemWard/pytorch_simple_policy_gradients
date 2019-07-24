@@ -20,8 +20,8 @@ class Softmax_Policy(nn.Module):
     def __init__(self, num_inputs, hidden_size, action_space):
 
         super(Softmax_Policy, self).__init__()
-        self.action_space = action_space
-        num_outputs = action_space.n
+
+        num_outputs = action_space
 
         self.linear1 = nn.Linear(num_inputs, hidden_size)
         self.linear2 = nn.Linear(hidden_size, num_outputs)

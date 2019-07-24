@@ -1,3 +1,5 @@
+from policy import Gaussian_Policy
+from policy import ValueNetwork
 import torch
 from torch.autograd import Variable
 import torch.autograd as autograd
@@ -6,61 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Normal
-import ipdb
 
-LOG_SIG_MAX = 2
-LOG_SIG_MIN = -20
-epsilon = 1e-6
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-class Gaussian_Policy(nn.Module):
-    '''
-    Gaussian policy that consists of a neural network with 1 hidden layer that
-    outputs mean and log std dev (the params) of a gaussian policy
-    '''
-
-    def __init__(self, num_inputs, hidden_size, action_space):
-
-       	super(Gaussian_Policy, self).__init__()
-
-        self.action_space = action_space
-        num_outputs = action_space.shape[0] # the number of output actions
-
-        self.linear = nn.Linear(num_inputs, hidden_size)
-        self.mean = nn.Linear(hidden_size, num_outputs)
-        self.log_std = nn.Linear(hidden_size, num_outputs)
-
-    def forward(self, inputs):
-
-        # forward pass of NN
-        x = inputs
-        x = F.relu(self.linear(x))
-
-        mean = self.mean(x)
-        log_std = self.log_std(x) # if more than one action this will give you the diagonal elements of a diagonal covariance matrix
-        log_std = torch.clamp(log_std, min=LOG_SIG_MIN, max=LOG_SIG_MAX) # We limit the variance by forcing within a range of -2,20
-        std = log_std.exp()
-
-        return mean, std
-
-class ValueNetwork(nn.Module):
-    '''
-    Value network V(s_t) = E[G_t | s_t] to use as a baseline in the reinforce
-    update. This a Neural Net with 1 hidden layer
-    '''
-
-    def __init__(self, num_inputs, hidden_dim):
-        super(ValueNetwork, self).__init__()
-        self.linear1 = nn.Linear(num_inputs, hidden_dim)
-        self.linear2 = nn.Linear(hidden_dim, 1)
-
-    def forward(self, state):
-
-        x = F.relu(self.linear1(state))
-        x = self.linear2(x)
-
-        return x
 
 class REINFORCE:
     '''
@@ -72,15 +20,17 @@ class REINFORCE:
 
         self.gamma = gamma
         self.action_space = action_space
-        self.policy = Gaussian_Policy(num_inputs, hidden_size, action_space)
+        self.policy = Gaussian_Policy(num_inputs, hidden_size, action_space)# use a different policy depending on the action space being continuous or note.
         self.policy_optimizer = optim.Adam(self.policy.parameters(), lr = lr_pi)
         self.baseline = baseline
         self.train_v_iters = train_v_iters # how many times you want to run update loop.
 
-        # create value network if we want to use baseline
+        # create value network if we want to use baseline/advantage
         if self.baseline:
+
             self.value_function = ValueNetwork(num_inputs, hidden_size)
             self.value_optimizer = optim.Adam(self.value_function.parameters(), lr = lr_vf)
+
 
     def select_action(self,state):
 
@@ -102,7 +52,7 @@ class REINFORCE:
         # turn actions into numpy array
         action = action.numpy()
 
-        return action[0], ln_prob, mean, std
+        return action[0], ln_prob #, mean, std
 
     def train(self, trajectory):
 
@@ -121,12 +71,12 @@ class REINFORCE:
         R = 0
         returns = []
         for r in rewards[::-1]:
-            R = r + 0.99 * R
+            R = r + self.gamma * R
             returns.insert(0, R)
 
         returns = torch.tensor(returns)
 
-        # train the Value Network and calcualte Advantage
+        # train the Value Network and calculate Advantage
         if self.baseline:
 
             # loop over this a couple of times

@@ -7,6 +7,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.distributions import Categorical
 
 class REINFORCE_discrete:
     '''
@@ -31,13 +32,13 @@ class REINFORCE_discrete:
 
     def select_action(self,state):
 
-    	state = torch.from_numpy(state).float().unsqueeze(0)
-    	probs = self.policy(state)
-    	m = Categorical(probs)
-    	action = m.sample()
-	log_prob = m.log_prob(action)
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        probs = self.policy(state)
+        m = Categorical(probs)
+        action = m.sample()
+        log_prob = m.log_prob(action)
 
-	return action.item(), log_prob
+        return action.item(), log_prob
 
     def train(self, trajectory):
 
