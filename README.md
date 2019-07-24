@@ -4,5 +4,6 @@ Reimplementation of simple policy gradient algorithms such as REINFORCE and one-
 An example of how to run reinforce:
 
 ```bash
-> python main.py --namestr="name of experiment" --env-name <Name_of_{gym/mujoco}_env> --baseline {True/False} --num-episodes 4000
+> python main_reinforce.py --namestr="CartPole Reinforce Baseline" --env-name CartPole-v0 --baseline True --action-space discrete --num-episodes 2000
+
 ```
