@@ -1,5 +1,5 @@
 # Pytorch simple policy gradients methods                                                       
-Implementation of simple policy gradient algorithms such as REINFORCE and one-step Actor-Critic methods with and without a baseline. This repo supports both **continuous** and **discrete** environments in OpenAI gym.                                                     
+Implementation of simple policy gradient algorithms such as REINFORCE and one-step Actor-Critic methods with and without a baseline. This repo supports both **continuous** and **discrete** environments in OpenAI gym.                                                  
 ## Requirements                                         
     - Python 3.xx
     - Pytorch                                                                    
@@ -7,12 +7,13 @@ Implementation of simple policy gradient algorithms such as REINFORCE and one-st
     - Mujoco (optional)                                                                                 
 
 ## Algorithms                                                                                          
-The main difference between the two algorithms implemented are in the TD error ($\delta$) used for updating the policy (and state-value) network. 
+The main difference between the two algorithms implemented are in the TD error (i use the greek letter delta below to denote this) used for updating the policy (and state-value) network. 
 
 REINFORCE uses a Monte Carlo type error that is sometimes called "rewards-to-go" (https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html#don-t-let-the-past-distract-you). Whereas the actor-critic architecture uses boostrapping based off of the value network. 
 
 ![td_error](assets/td_error.png)
 
+For continuous action space we use a Gaussian distribution followed by a tanh function to squeeze the actions into a fixed interval.
 
 # How to run and Configuration
 
@@ -36,4 +37,21 @@ notice that there are a couple of command line arugments that can be used to cus
 
 ## Results
 
+### Cartpole v0
 
+Cartpole is a discrete action space environement with 2 actions (left and right). 
+
+REINFORCE with baseline:
+![REINFORCE Cartpole](assets/REINFORCE_cartpole.png)
+
+One-step Actor-Critic with baseline:
+![AC cartpole](assets/ActorCritic_CartPole.jpeg)
+
+### Inverted Pendulum v1
+
+Inverted Pendulum is a continuous action space.
+
+REINFORCE with baseline:
+![REINFORCE InvertedPend](assets/Reinforce_InvertedPend.jpeg)
+
+One-step Actor-Critic with baseline doesn't solve the environment after 5000 episodes. 
