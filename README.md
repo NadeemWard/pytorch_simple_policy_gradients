@@ -41,17 +41,17 @@ notice that there are a couple of command line arugments that can be used to cus
 
 Cartpole is a discrete action space environement with 2 actions (left and right). 
 
-REINFORCE with baseline:
-![REINFORCE Cartpole](assets/REINFORCE_cartpole.png)
+**REINFORCE with baseline**:
+![REINFORCE Cartpole](assets/REINFORCE_cartpole.jpeg	)
 
-One-step Actor-Critic with baseline:
+**One-step Actor-Critic with baseline**:
 ![AC cartpole](assets/ActorCritic_CartPole.jpeg)
 
 ### Inverted Pendulum v1
 
 Inverted Pendulum is a continuous action space.
 
-REINFORCE with baseline:
+**REINFORCE with baseline**:
 ![REINFORCE InvertedPend](assets/Reinforce_InvertedPend.jpeg)
 
 One-step Actor-Critic with baseline doesn't solve the environment after 5000 episodes. 
