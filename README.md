@@ -39,7 +39,7 @@ notice that there are a couple of command line arugments that can be used to cus
 
 ### Cartpole v0
 
-Cartpole is a discrete action space environement with 2 actions (left and right). 
+Cartpole is a discrete action space environement with 2 actions (left and right). It is considered solved when the reward hits 200.
 
 **REINFORCE with baseline**:
 ![REINFORCE Cartpole](assets/REINFORCE_cartpole.jpeg	)
@@ -49,7 +49,7 @@ Cartpole is a discrete action space environement with 2 actions (left and right)
 
 ### Inverted Pendulum v1
 
-Inverted Pendulum is a continuous action space.
+Inverted Pendulum is a continuous action space. The environment is considered solved when the reward hits 1000.
 
 **REINFORCE with baseline**:
 ![REINFORCE InvertedPend](assets/Reinforce_InvertedPend.jpeg)
