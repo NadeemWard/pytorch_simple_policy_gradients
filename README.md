@@ -54,4 +54,4 @@ Inverted Pendulum is a continuous action space. The environment is considered so
 **REINFORCE with baseline**:
 ![REINFORCE InvertedPend](assets/Reinforce_InvertedPend.jpeg)
 
-One-step Actor-Critic with baseline doesn't solve the environment after 5000 episodes. 
+One-step Actor-Critic doesn't solve the environment after 5000 episodes. 
