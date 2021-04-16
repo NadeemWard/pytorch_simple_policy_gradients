@@ -42,7 +42,7 @@ notice that there are a couple of command line arugments that can be used to cus
 Cartpole is a discrete action space environement with 2 actions (left and right). It is considered solved when the reward hits 200.
 
 **REINFORCE with baseline**:
-![REINFORCE Cartpole](assets/REINFORCE_cartpole.jpeg	)
+![REINFORCE Cartpole](assets/REINFORCE_cartpole.jpeg)
 
 **One-step Actor-Critic**:
 ![AC cartpole](assets/ActorCritic_CartPole.jpeg)
