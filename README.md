@@ -44,7 +44,7 @@ Cartpole is a discrete action space environement with 2 actions (left and right)
 **REINFORCE with baseline**:
 ![REINFORCE Cartpole](assets/REINFORCE_cartpole.jpeg	)
 
-**One-step Actor-Critic with baseline**:
+**One-step Actor-Critic**:
 ![AC cartpole](assets/ActorCritic_CartPole.jpeg)
 
 ### Inverted Pendulum v1
